@@ -1,0 +1,240 @@
+# ============================================================
+# 💰 Calculadora de Custo de Alvenaria
+# Projeto Interativo de Cálculo de Materiais e Custos
+# Grupo: Alvenaria 2025
+# ============================================================
+
+import ipywidgets as widgets
+from IPython.display import display, Markdown, HTML
+
+# === Banner Visual ===
+display(HTML("""
+<div style="
+    background-color: #2ECC71;
+    color: white;
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    font-family: 'Segoe UI', sans-serif;
+">
+💰 Calculadora de Custo de Alvenaria
+</div>
+<br>
+"""))
+
+# === Estilos globais com espaçamento ajustado ===
+display(HTML("""
+<style>
+    .widget-label { 
+        font-weight: bold !important; 
+        font-size: 15px; 
+        color: #2C3E50; 
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    select, input {
+        border-radius: 12px !important;
+        border: 1px solid #BDC3C7 !important;
+        padding: 8px 12px !important;
+        font-size: 14px !important;
+        font-family: 'Segoe UI', sans-serif !important;
+        box-shadow: 1px 1px 4px rgba(0,0,0,0.1);
+        min-width: 200px;
+    }
+
+    button.btn-success {
+        background-color: #2ECC71 !important;
+        color: white !important;
+        font-weight: bold !important;
+        border-radius: 12px !important;
+        padding: 10px 25px !important;
+        font-size: 16px !important;
+        font-family: 'Segoe UI', sans-serif;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        transition: 0.2s;
+    }
+
+    button.btn-success:hover {
+        background-color: #27AE60 !important;
+        transform: scale(1.03);
+    }
+
+    .resultado-card {
+        background: #ffffff;
+        border: 1px solid #e0e0e0;
+        border-radius: 14px;
+        padding: 18px 22px;
+        margin-top: 12px;
+        font-family: 'Segoe UI', sans-serif;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+    }
+
+    .resultado-card h3 {
+        color: #2C3E50;
+        margin-bottom: 8px;
+    }
+
+    .secao-titulo {
+        font-weight: bold;
+        color: #27AE60;
+        margin-top: 12px;
+        margin-bottom: 6px;
+        font-size: 15px;
+        border-bottom: 2px solid #2ECC71;
+        display: inline-block;
+        padding-bottom: 2px;
+    }
+
+    .linha {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        margin: 4px 0;
+        font-size: 14px;
+    }
+
+    .linha span:first-child {
+        min-width: 180px; /* <-- controla distância entre texto e valor */
+        display: inline-block;
+    }
+
+    .valor {
+        font-weight: bold;
+        color: #2C3E50;
+        margin-left: 8px; /* aproxima o valor do texto */
+    }
+
+    .total {
+        font-size: 18px;
+        font-weight: bold;
+        color: #27AE60;
+        text-align: center;
+        margin-top: 12px;
+    }
+
+    .sub {
+        font-size: 13px;
+        color: #7F8C8D;
+        text-align: center;
+    }
+</style>
+"""))
+
+# === Função principal ===
+def calcular_alvenaria_interativa(comprimento, altura, tipo_tijolo):
+    tipos_tijolos = {
+        "Tijolo Baiano": {"comprimento": 0.39, "altura": 0.19, "espessura": 0.09, "preco": 1.00},
+        "Bloco de Concreto": {"comprimento": 0.39, "altura": 0.19, "espessura": 0.14, "preco": 4.00},
+        "Tijolo Maciço": {"comprimento": 0.20, "altura": 0.10, "espessura": 0.05, "preco": 2.00}
+    }
+
+    tijolo = tipos_tijolos[tipo_tijolo]
+    tijolo_comprimento = tijolo["comprimento"]
+    tijolo_altura = tijolo["altura"]
+    espessura_parede = tijolo["espessura"]
+    preco_tijolo = tijolo["preco"]
+
+    # Constantes
+    junta_altura = 0.01
+    preco_saco_cimento = 35.00
+    preco_areia_m3 = 120.00
+    custo_mao_obra_m2 = 80.00
+
+    # Cálculos
+    area = comprimento * altura
+    altura_fiada = tijolo_altura + junta_altura
+    num_fiadas = round(altura / altura_fiada)
+    tijolos_por_fiada = round(comprimento / tijolo_comprimento)
+    total_tijolos = int(num_fiadas * tijolos_por_fiada * 1.1)
+    volume_parede = comprimento * altura * espessura_parede
+    volume_argamassa = 0.20 * volume_parede
+    volume_cimento = volume_argamassa / 7
+    volume_areia = volume_argamassa - volume_cimento
+    volume_saco_cimento = 0.035
+    sacos_cimento = volume_cimento / volume_saco_cimento
+    custo_tijolos = total_tijolos * preco_tijolo
+    custo_cimento = sacos_cimento * preco_saco_cimento
+    custo_areia = volume_areia * preco_areia_m3
+    custo_mao_obra = area * custo_mao_obra_m2
+    custo_total = custo_tijolos + custo_cimento + custo_areia + custo_mao_obra
+    custo_por_m2 = custo_total / area
+
+    # === Exibição dos resultados ajustada ===
+    display(HTML(f"""
+    <div class='resultado-card'>
+        <h3>🧱 {tipo_tijolo}</h3>
+
+        <div class='secao-titulo'>📐 Dimensões</div>
+        <div class='linha'><span>Parede:</span><span class='valor'>{comprimento} m × {altura} m</span></div>
+        <div class='linha'><span>Área total:</span><span class='valor'>{area:.2f} m²</span></div>
+        <div class='linha'><span>Fiadas:</span><span class='valor'>{num_fiadas}</span></div>
+        <div class='linha'><span>Tijolos por fiada:</span><span class='valor'>{tijolos_por_fiada}</span></div>
+        <div class='linha'><span>Total (c/ 10% sobra):</span><span class='valor'>{total_tijolos}</span></div>
+
+        <div class='secao-titulo'>🏗 Volume e Materiais</div>
+        <div class='linha'><span>Volume parede:</span><span class='valor'>{volume_parede:.2f} m³</span></div>
+        <div class='linha'><span>Argamassa:</span><span class='valor'>{volume_argamassa:.2f} m³</span></div>
+        <div class='linha'><span>Cimento:</span><span class='valor'>{volume_cimento:.2f} m³ (~{sacos_cimento:.1f} sacos)</span></div>
+        <div class='linha'><span>Areia:</span><span class='valor'>{volume_areia:.2f} m³</span></div>
+
+        <div class='secao-titulo'>💰 Custos</div>
+        <div class='linha'><span>Tijolos:</span><span class='valor'>R$ {custo_tijolos:,.2f}</span></div>
+        <div class='linha'><span>Cimento:</span><span class='valor'>R$ {custo_cimento:,.2f}</span></div>
+        <div class='linha'><span>Areia:</span><span class='valor'>R$ {custo_areia:,.2f}</span></div>
+        <div class='linha'><span>Mão de obra:</span><span class='valor'>R$ {custo_mao_obra:,.2f}</span></div>
+
+        <div class='total'>💵 Custo Total: R$ {custo_total:,.2f}</div>
+        <div class='sub'>Custo médio por m²: <b>R$ {custo_por_m2:,.2f}/m²</b></div>
+    </div>
+    """))
+
+# === Widgets ===
+tipo_tijolo_widget = widgets.Dropdown(
+    options=["Tijolo Baiano", "Bloco de Concreto", "Tijolo Maciço"],
+    value="Tijolo Baiano",
+    description='🧱 Tipo de Tijolo:',
+    style={'description_width': 'initial'},
+    layout=widgets.Layout(height='35px',width='320px')
+)
+
+comprimento_widget = widgets.FloatText(
+    value=5.0,
+    description='📏 Comprimento (m):',
+    step=0.1,
+    style={'description_width': 'initial'},
+    layout=widgets.Layout(width='320px')
+)
+
+altura_widget = widgets.FloatText(
+    value=2.5,
+    description='📐 Altura (m):',
+    step=0.1,
+    style={'description_width': 'initial'},
+    layout=widgets.Layout(width='320px')
+)
+
+botao = widgets.Button(
+    description="🔢 Calcular Alvenaria",
+    button_style='success',
+    icon='calculator',
+    layout=widgets.Layout(width='320px', height='45px')
+)
+
+# === Ação ===
+def on_button_click(b):
+    calcular_alvenaria_interativa(comprimento_widget.value, altura_widget.value, tipo_tijolo_widget.value)
+
+botao.on_click(on_button_click)
+
+# === Layout final ===
+display(Markdown("## 🧮 Simulador Interativo de Cálculo"))
+display(Markdown("Preencha os dados abaixo e clique em Calcular Alvenaria para obter os resultados:"))
+box = widgets.VBox([
+    tipo_tijolo_widget,
+    widgets.HBox([comprimento_widget, altura_widget]),
+    botao
+])
+display(box)
